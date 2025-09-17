@@ -1,0 +1,17 @@
+
+.chat-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+/* Ensure Textarea auto-grows */
+.chat-input textarea {
+    resize: none;
+    overflow-y: hidden;
+}
+
+@media (max-width: 1024px) {
+    .chat-sidebar {
+        display: none;
+    }
+}
