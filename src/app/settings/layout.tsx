@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarInset, SidebarTrigger, SidebarGroup } from "@/components/ui/sidebar";
 
 const navItems = [
-  { href: "/settings", label: "Settings" },
+  // { href: "/settings", label: "Settings" },
+  { href: "/settings/account", label: "Account" },
   { href: "/settings/credits", label: "Credits" },
   { href: "/settings/activity", label: "Activity" },
   { href: "/settings/presets", label: "Presets" },

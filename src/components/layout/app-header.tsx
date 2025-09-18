@@ -23,11 +23,12 @@ export function AppHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-header">
+    <header className="sticky top-0 z-50 w-full h-[65px] border-b bg-header flex items-center">
       <div className="container flex h-14 max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8 mx-auto">
         <div className="flex items-center gap-6 mr-auto">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-bold sm:inline-block">GATEWAYZ</span>
+            {/* <span className="font-bold sm:inline-block">GATEWAYZ</span> */}
+            <img src="/logo_black.svg" alt="Gatewayz" style={{ width: "100%", height: "100%" }} />
           </Link>
            <div className="relative hidden sm:block w-full max-w-sm">
              <SearchBar />
@@ -36,10 +37,10 @@ export function AppHeader() {
         
         <div className="flex items-center gap-4">
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/models" className="transition-colors hover:text-foreground/80 text-foreground/60">Models</Link>
-            <Link href="/chat" className="transition-colors hover:text-foreground/80 text-foreground/60">Chat</Link>
-            <Link href="/developers" className="transition-colors hover:text-foreground/80 text-foreground/60">Developers</Link>
-            <Link href="/rankings" className="transition-colors hover:text-foreground/80 text-foreground/60">Rankings</Link>
+            <Link href="/models" className="transition-colors hover:text-foreground/80 ">Models</Link>
+            <Link href="/chat" className="transition-colors hover:text-foreground/80 ">Chat</Link>
+            <Link href="/developers" className="transition-colors hover:text-foreground/80 ">Developers</Link>
+            <Link href="/rankings" className="transition-colors hover:text-foreground/80 ">Ranking</Link>
           </nav>
           <div className="hidden md:flex items-center gap-2">
             {user ? (
@@ -65,7 +66,7 @@ export function AppHeader() {
                     <Link href="/models" className="transition-colors hover:text-foreground/80 text-foreground/60">Models</Link>
                     <Link href="/chat" className="transition-colors hover:text-foreground/80 text-foreground/60">Chat</Link>
                     <Link href="/developers" className="transition-colors hover:text-foreground/80 text-foreground/60">Developers</Link>
-                    <Link href="/rankings" className="transition-colors hover:text-foreground/80 text-foreground/60">Rankings</Link>
+                    <Link href="/rankings" className="transition-colors hover:text-foreground/80 text-foreground/60">Ranking</Link>
                   </nav>
                   <div className="mt-6 flex flex-col gap-2">
                     {user ? (

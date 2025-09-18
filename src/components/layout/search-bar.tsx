@@ -22,12 +22,13 @@ export function SearchBar() {
                     <Input 
                         type="search" 
                         placeholder="Search Models..." 
-                        className="pl-3 pr-4 h-9" 
+                        className="pl-3 pr-4 h-[45px]" 
                         onFocus={() => setOpen(true)}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    {/* <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
+                    <img src="/material-symbols_search.svg" alt="Search" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" style={{ width: "24px", height: "24px" }} />
                     {/* <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground border rounded-sm px-1.5 py-0.5">/</div> */}
                 </div>
             </PopoverTrigger>
