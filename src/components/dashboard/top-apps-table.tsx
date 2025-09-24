@@ -77,11 +77,54 @@ export type TimeFrameOption = 'Today' | 'Past 7 days' | 'Past Month';
 
 export default function TopAppsTable() {
   const [timeFrame, setTimeFrame] = useState<TimeFrameOption>('Today');
-  const { adjustedApps } = useModelData('year', 'All', timeFrame);
+  const { adjustedApps, loading, error } = useModelData('year', 'All', timeFrame);
 
 
   const appsColumn1 = adjustedApps.slice(0, 10);
   const appsColumn2 = adjustedApps.slice(10, 20);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3c-1.2 0-2.4.6-3 1.7A3.5 3.5 0 0 0 6.5 8c0 2.3 1.9 4.2 4.2 4.2h0c2.3 0 4.2-1.9 4.2-4.2a3.5 3.5 0 0 0-2.5-3.3A3.5 3.5 0 0 0 12 3z"></path><path d="M12 14c-1.2 0-2.4.6-3 1.7A3.5 3.5 0 0 0 6.5 19c0 2.3 1.9 4.2 4.2 4.2h0c2.3 0 4.2-1.9 4.2-4.2a3.5 3.5 0 0 0-2.5-3.3A3.5 3.5 0 0 0 12 14z"></path></svg>
+            Top Apps
+          </CardTitle>
+          <CardDescription>Loading app data...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3c-1.2 0-2.4.6-3 1.7A3.5 3.5 0 0 0 6.5 8c0 2.3 1.9 4.2 4.2 4.2h0c2.3 0 4.2-1.9 4.2-4.2a3.5 3.5 0 0 0-2.5-3.3A3.5 3.5 0 0 0 12 3z"></path><path d="M12 14c-1.2 0-2.4.6-3 1.7A3.5 3.5 0 0 0 6.5 19c0 2.3 1.9 4.2 4.2 4.2h0c2.3 0 4.2-1.9 4.2-4.2a3.5 3.5 0 0 0-2.5-3.3A3.5 3.5 0 0 0 12 14z"></path></svg>
+            Top Apps
+          </CardTitle>
+          <CardDescription>Error loading app data</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

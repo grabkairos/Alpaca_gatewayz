@@ -22,10 +22,6 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        header: {
-          DEFAULT: 'hsl(var(--header))',
-          foreground: 'hsl(var(--header-foreground))',
-        },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
@@ -50,8 +46,7 @@ export default {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
-        searchBar: 'hsl(var(--search-bar))',
-
+searchBar: 'hsl(var(--search-bar))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -62,6 +57,11 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        header: {
+          DEFAULT: 'rgb(var(--header))',
+          foreground: 'hsl(var(--header-foreground))',
+        },
+        'footer-border': 'rgb(var(--footer-border))',
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
@@ -77,6 +77,23 @@ export default {
           green: '#76b852',
           blue: '#4facfe',
         },
+},
+      gridTemplateColumns: {
+        '24': 'repeat(24, minmax(0, 1fr))',
+      },
+      gridColumn: {
+        'span-13': 'span 13 / span 13',
+        'span-14': 'span 14 / span 14',
+        'span-15': 'span 15 / span 15',
+        'span-16': 'span 16 / span 16',
+        'span-17': 'span 17 / span 17',
+        'span-18': 'span 18 / span 18',
+        'span-19': 'span 19 / span 19',
+        'span-20': 'span 20 / span 20',
+        'span-21': 'span 21 / span 21',
+        'span-22': 'span 22 / span 22',
+        'span-23': 'span 23 / span 23',
+        'span-24': 'span 24 / span 24',
       },
       borderRadius: {
         lg: 'var(--radius)',

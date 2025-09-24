@@ -25,12 +25,11 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 w-full h-[65px] border-b bg-header flex items-center">
       <div className="container flex h-14 max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8 mx-auto">
-        <div className="flex items-center gap-6 mr-auto">
-          <Link href="/" className="flex items-center space-x-2">
-            {/* <span className="font-bold sm:inline-block">GATEWAYZ</span> */}
-            <img src="/logo_black.svg" alt="Gatewayz" style={{ width: "100%", height: "100%" }} />
+        <div className="flex items-center mr-auto">
+          <Link href="/" className="flex items-center space-x-2 w-[45px] h-[45px] shrink-0">
+            <img src="/logo_black.svg" alt="Gatewayz" className="w-[45px] h-[45px] object-contain" />
           </Link>
-           <div className="relative hidden sm:block w-full max-w-sm">
+           <div className="relative hidden sm:block w-full max-w-sm pl-6">
              <SearchBar />
            </div>
         </div>

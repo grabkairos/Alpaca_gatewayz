@@ -8,6 +8,7 @@ import { ArrowRight, ChevronRight, GitMerge, ShieldCheck, TrendingUp, User, Zap 
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 const FeaturedModelCard = ({ 
   model, 
@@ -74,7 +75,7 @@ const FeaturedModelCard = ({
             </div>
             <div>
               <h3 className="font-bold text-base text-black">{model.name}</h3>
-              <span>By</span><span className="text-sm text-blue-600"> {model.by.charAt(0).toUpperCase() + model.by.slice(1)}</span>
+              <span>By</span><span className="text-sm text-blue-600"><a href={`https://api.gatewayz.ai/${model.by}`} target="_blank"> {model.by.charAt(0).toUpperCase() + model.by.slice(1)}</a></span>
             </div>
           </div>
           
@@ -124,7 +125,7 @@ const FeatureCard = ({ icon, title, description, linkText, linkHref }: { icon: s
         <img src={`/${icon}.svg`} alt="Stats" width="100%" height="100%" />
       </div>
     </div>
-    <h3 className="text-lg font-bold mb-2">{title}</h3>
+    <h3 className="text-2xl font-bold mb-2">{title}</h3>
     <p className=" text-1xl text-bold mb-4">{description}</p>
     {/* <Link href={linkHref}>
       <Button variant="link" className="text-primary">{linkText} <ArrowRight className="w-4 h-4 ml-1"/></Button>
@@ -146,6 +147,9 @@ export default function Home() {
   const [message, setMessage] = useState('');
   const router = useRouter();
   const [apiKey, setApiKey] = useState('0000000000000000000000000000000000000000');
+  const [selectedLanguage, setSelectedLanguage] = useState('nodejs');
+  const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
   const featuredModels = [
       { name: 'Gemini 2.5 Pro', by: 'google', tokens: '170.06', latency: '2.6s', growth: '+13.06%', color: 'bg-blue-400' },
       { name: 'GPT-5 Chat', by: 'openai', tokens: '20.98', latency: '850ms', growth: '--', color: 'bg-green-400' },
@@ -180,12 +184,111 @@ export default function Home() {
   const handleCopyApiKey = () => {
     navigator.clipboard.writeText(apiKey);
   };
+
+  // Code snippet generation function
+  const getCodeSnippet = (language: string) => {
+    const snippets = {
+      nodejs: `import Gatewayz from "gatewayz";
+const gatewayz = new Gatewayz();
+
+async function main() {
+  const completion = await gatewayz.chat.completions.create({
+    messages: [{ role: "user", content: "What's a Gatewayz?" }],
+    model: "@openai/gpt-4o"
+  });
+  console.log(completion.choices[0]);
+}
+
+main();`,
+      python: `import gatewayz
+
+gatewayz = gatewayz.Gatewayz()
+
+async def main():
+    completion = await gatewayz.chat.completions.create(
+        messages=[{"role": "user", "content": "What's a Gatewayz?"}],
+        model="@openai/gpt-4o"
+    )
+    print(completion.choices[0])
+
+main()`,
+      'openai-js': `import OpenAI from "openai";
+import Gatewayz from "gatewayz";
+
+const openai = new OpenAI({
+  baseURL: "https://api.gatewayz.ai/v1",
+  apiKey: process.env.GATEWAYZ_API_KEY,
+});
+
+const completion = await openai.chat.completions.create({
+  messages: [{ role: "user", content: "What's a Gatewayz?" }],
+  model: "@openai/gpt-4o",
+});
+
+console.log(completion.choices[0]);`,
+      'openai-py': `from openai import OpenAI
+import gatewayz
+
+client = OpenAI(
+    base_url="https://api.gatewayz.ai/v1",
+    api_key=os.getenv("GATEWAYZ_API_KEY")
+)
+
+completion = client.chat.completions.create(
+    messages=[{"role": "user", "content": "What's a Gatewayz?"}],
+    model="@openai/gpt-4o"
+)
+
+print(completion.choices[0])`,
+      curl: `curl https://api.gatewayz.ai/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $GATEWAYZ_API_KEY" \\
+  -d '{
+    "model": "@openai/gpt-4o",
+    "messages": [{
+      "role": "user",
+      "content": "What'\''s a Gatewayz?"
+    }]
+  }'`
+    };
+    return snippets[language as keyof typeof snippets] || snippets.nodejs;
+  };
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text: string, language: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      
+      // Set copied state to true
+      setCopiedStates(prev => ({ ...prev, [language]: true }));
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        setCopiedStates(prev => ({ ...prev, [language]: false }));
+      }, 2000);
+      
+      toast({
+        title: "Copied!",
+        description: "Code snippet copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
   
   return (
     <div className="bg-background text-foreground">
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 " style={{position: 'relative'}}>
         {/* Hero Section */}
-        <img src="/logo_transparent.svg" alt="Stats" width="50%" height="50%" style={{position: 'absolute', top: "30px", left: "50%", transform: "translateX(-50%)"}}/>
+        <img 
+          src="/logo_transparent.svg" 
+          alt="Stats" 
+          className="absolute top-8 left-1/2 transform -translate-x-1/2 w-[450px] h-[450px] lg:w-[640px] lg:h-[640px] xl:w-[768px] xl:h-[768px]" 
+        />
         
         <section className="grid md:grid-cols-1 gap-6 items-center md:py-[140px]" >
           <div className="space-y-6 ">
@@ -312,35 +415,109 @@ export default function Home() {
         </section>
 
         {/* Integrations Section */}
-        <section className="my-24 pt-24">
+        <section className="my-24 pt-24 relative">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white -z-10"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl -z-10"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-red-200/30 rounded-full blur-3xl -z-10"></div>
+          
           <div className="mb-8 flex flex-col items-center justify-center">
             <div className="w-full flex flex-col md:flex-row items-center gap-4">
-              <h2 className="text-3xl font-bold text-left flex-1">Integration Only Takes A Minute</h2>
-              <p className=" text-bold text-center text-xl">3 Lines To Get Gatewayz Running, No Stack Overhaul Required.</p>
+              <h2 className="text-3xl font-bold text-left flex-1 text-black">Integration Only Takes A Minute</h2>
+              <p className="text-gray-600 text-center text-xl">3 Lines To Get Gatewayz Running, No Stack Overhaul Required.</p>
             </div>
           </div>
-          <img src="/integration.svg" alt="Integrations" width="100%" height="100%" />
-           <div className="w-full flex flex-row items-center gap-10 mt-8">
-             <div className="relative flex-1">
-               <Input 
-                 placeholder="Enter your API key..." 
-                 className="h-12 pr-14" 
-                 value={apiKey}
-                 type="password"
-                 onChange={(e) => setApiKey(e.target.value)}
-                 onKeyPress={handleCopyApiKey}
-               />
-               <button 
-                 className="absolute right-2 top-1/2 -translate-y-1/2"
-                 onClick={handleCopyApiKey}
-               >
-                 <img src="/material-symbols_key.svg" alt="Copy" width="24" height="24" />
-               </button>
-             </div>   
-             <span className="flex-1">
-             <Button className="w-full bg-black text-white h-12" variant="outline">Generate API Key</Button>    
-             </span>
-           </div>
+          
+          {/* Interactive Code Editor */}
+          <div className="relative  mx-auto border-2 border-grey-500 rounded-xl p-4">
+            {/* Code Editor Container */}
+            <div className="relative bg-black rounded-xl border-2  shadow-2xl overflow-hidden px-8">
+              Window Controls
+              <div className="flex items-center gap-2 p-3 ">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                </div>
+                <div className="flex-1"></div>
+                {/* <div className="text-sm text-gray-400">Terminal</div> */}
+              </div>
+              
+              {/* Language Tabs */}
+              <div className="flex gap-2 px-4 ">
+                {[
+                  { id: 'nodejs', label: 'Node.js', icon: '' },
+                  { id: 'python', label: 'Python', icon: '' },
+                  { id: 'openai-js', label: 'OpenAI JS', icon: '' },
+                  { id: 'openai-py', label: 'OpenAI Py', icon: '' },
+                  { id: 'curl', label: '// cURL', icon: '' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedLanguage(tab.id)}
+                    className={`px-4 py-2 text-sm font-medium transition-colors rounded-lg border ${
+                      selectedLanguage === tab.id
+                        ? 'bg-gray-800 text-white border-gray-600'
+                        : 'text-gray-400 border-gray-700 hover:text-white hover:bg-gray-800 hover:border-gray-600'
+                    }`}
+                  >
+                    <span className="mr-2">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Code Content */}
+              <div className="p-6 bg-black  h-[360px]">
+                <pre className="text-sm text-white font-mono leading-relaxed">
+                  <code>{getCodeSnippet(selectedLanguage)}</code>
+                </pre>
+              </div>
+              
+              {/* Copy Button */}
+              <div className="absolute top-4 right-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(getCodeSnippet(selectedLanguage), selectedLanguage)}
+                  className={`text-gray-400 transition-colors ${
+                    copiedStates[selectedLanguage] ? 'text-green-500' : ''
+                  }`}
+                >
+                  {copiedStates[selectedLanguage] ? (
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                  {copiedStates[selectedLanguage] ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {/* API Key Input Section */}
+          <div className="w-full flex flex-row items-center gap-10 mt-8 mx-auto">
+            <div className="relative flex-1">
+              <Input 
+                placeholder="Enter your API key..." 
+                className="h-12 pr-20 bg-gray-100 border-gray-300" 
+                value={apiKey}
+                type="password"
+                readOnly
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                
+                <img src='/material-symbols_key.svg' alt='Copy' width={24} height={24} />
+              </div>
+            </div>   
+            <span className="flex-1">
+              <Button className="w-full bg-black text-white h-12 rounded-lg hover:bg-gray-800"><a href="/settings/keys">Generate API Key</a></Button>    
+            </span>
+          </div>
         </section>
 
         {/* Features Section */}
@@ -414,11 +591,11 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t">
+      {/* <footer className="border-t">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-[10px] flex justify-center items-center text-sm text-muted-foreground">
             <img src="/logo_black.svg" alt="Stats" width="45px" height="45px" />
           </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

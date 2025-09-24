@@ -1,22 +1,59 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  GithubAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  type User
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBOxnyFsGf6ULXxVKhRSzmfXIPZIR_NEG4",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "model-insights-yn4er.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "model-insights-yn4er",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "model-insights-yn4er.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "80845975507",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:80845975507:web:453d4da5ec5e8e83258926",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || ""
+  apiKey: "AIzaSyA0iFEHIACZ_Fx2Rerfm93hCDMQ9vMLu0M",
+  authDomain: "oxvoidmain-gatewayz.firebaseapp.com",
+  projectId: "oxvoidmain-gatewayz",
+  storageBucket: "oxvoidmain-gatewayz.firebasestorage.app",
+  messagingSenderId: "1040867084001",
+  appId: "1:1040867084001:web:1ac1fd71c959f9a21499a0",
+  measurementId: "G-YFL2PSB07D"
 };
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-export { app, auth, db, storage };
+// Auth providers
+const googleProvider = new GoogleAuthProvider();
+const githubProvider = new GithubAuthProvider();
+
+// Configure providers
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
+githubProvider.addScope('user:email');
+
+// Auth functions
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const signInWithGithub = async () => {
+  try {
+    const result = await signInWithPopup(auth, githubProvider);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const signOutUser = () => signOut(auth);
+
+export { app, auth, db, onAuthStateChanged, type User };

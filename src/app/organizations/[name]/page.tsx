@@ -8,6 +8,8 @@ import { Building, Bot, BarChart, HardHat, Package, ChevronDown, Link as LinkIco
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { useMemo, useState } from 'react';
+import { useModelData } from '@/hooks/useModelData';
+import { useModels } from '@/hooks/use-api';
 import {
   Select,
   SelectContent,
@@ -24,37 +26,38 @@ import { stringToColor } from '@/lib/utils';
 
 const ModelCard = ({ model }: { model: Model }) => (
   <Link href={`/models/${encodeURIComponent(model.name)}`}>
-    <Card className="p-6 flex flex-col h-full hover:border-primary">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            {model.name} {model.isFree && <Badge>Free</Badge>}
-          </h3>
-          <Badge variant="outline" className="mt-2" style={{ backgroundColor: stringToColor(model.category) }}>{model.category}</Badge>
+    <Card className="p-6 transition-colors">
+      <div className="flex items-start mb-2">
+        <h3 className="text-xl font-bold text-black">{model.name}</h3>
+        <div className="flex gap-2">
+          {model.isFree && (
+            <Badge className="bg-black text-white px-2 py-1 text-xs">Free</Badge>
+          )}
+          <Badge 
+            variant="outline" 
+            className="px-2 py-1 text-xs border-purple-200 bg-purple-50 text-purple-700 ml-2"
+          >
+            {model.category}
+          </Badge>
         </div>
-        <div className="text-sm text-muted-foreground whitespace-nowrap">{model.tokens}</div>
       </div>
-      <p className="text-muted-foreground mt-4 text-sm flex-grow">{model.description}</p>
-      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
-        <span>by {model.developer}</span>
-        <span>{model.context}K context</span>
-        <span>${model.inputCost}/M input</span>
-        <span>${model.outputCost}/M output</span>
+      <p className=" text-sm mb-2">{model.description}</p>
+      <div className="flex items-center gap-4 text-xs border-t border-gray-200 pt-2">
+        <span>By {model.developer}</span>
+        <span>{model.tokens} Tokens</span>
+        <span>{model.context}K Context</span>
+        <span>${model.inputCost}/M Input</span>
+        <span>${model.outputCost}/M Output</span>
       </div>
     </Card>
   </Link>
 );
 
-const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string | number }) => (
-    <Card>
-        <CardContent className="p-6 flex flex-col items-center text-center gap-2">
-            <div className="bg-primary/10 p-3 rounded-lg">
-                <Icon className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-                <p className="text-muted-foreground text-sm">{title}</p>
-                <p className="text-2xl font-bold">{value}</p>
-            </div>
+const StatCard = ({ title, value }: { title: string, value: string | number }) => (
+    <Card className="bg-gray-50 border border-gray-200">
+        <CardContent className="p-6 text-center">
+            <div className="text-2xl font-bold text-black mb-1">{value}</div>
+            <div className="text-sm text-gray-600">{title}</div>
         </CardContent>
     </Card>
 );
@@ -74,11 +77,28 @@ const generateChartData = (timeFrame: TimeFrame) => {
         default: days = 365; break;
     }
 
+    // Generate data that matches the design pattern with realistic token values
     return Array.from({ length: days }, (_, i) => {
         const date = addDays(now, i - days + 1);
+        
+        // Create a realistic growth pattern similar to the design
+        let baseValue = 400; // Start around 400B
+        if (timeFrame === 'monthly') {
+            // For monthly view, create a pattern that goes from ~400B to ~2T
+            const progress = i / (days - 1);
+            baseValue = 400 + (progress * 1600); // 400B to 2000B (2T)
+        } else if (timeFrame === 'yearly') {
+            // For yearly view, create a pattern that spans from Jul 8, 2024 to Jun 16
+            const progress = i / (days - 1);
+            baseValue = 400 + (progress * 1600); // Similar pattern
+        }
+        
+        // Add some realistic fluctuation
+        const fluctuation = Math.sin(i * 0.3) * 100 + Math.random() * 50;
+        
         return {
             date: format(date, 'yyyy-MM-dd'),
-            tokens: Math.floor(Math.random() * 500 + 100 + (i * 2) * (365/days) )
+            tokens: Math.max(0, baseValue + fluctuation)
         };
     });
 };
@@ -108,15 +128,20 @@ const getTicks = (data: { date: string }[], maxTicks = 8) => {
 
 export default function OrganizationPage() {
   const params = useParams();
-  const [timeFrame, setTimeFrame] = useState<TimeFrame>('yearly');
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>('monthly');
 
   const organizationName = useMemo(() => {
     const name = params.name as string;
     return name ? decodeURIComponent(name) : '';
   }, [params.name]);
 
+  const { modelsData } = useModelData('year', 'All');
+  console.log(modelsData,"modelsData");
+  const { data: apiModels, loading: modelsLoading, error: modelsError } = useModels();
 
+  console.log(apiModels,"apiModels");
   const orgModels = useMemo(() => {
+    console.log(allModelsData,"allModelsData");
     return allModelsData.filter(model => model.developer.toLowerCase() === organizationName.toLowerCase());
   }, [organizationName]);
 
@@ -147,6 +172,29 @@ export default function OrganizationPage() {
       return total.toLocaleString();
   }, [orgModels]);
 
+  const totalValue = useMemo(() => {
+      // Calculate total value based on input/output costs and estimated usage
+      const total = orgModels.reduce((acc, model) => {
+        const inputCost = parseFloat(model.inputCost.toString());
+        const outputCost = parseFloat(model.outputCost.toString());
+        const tokenValue = parseFloat(model.tokens);
+        
+        // Estimate value based on token usage and costs
+        let estimatedTokens = tokenValue;
+        if (model.tokens.includes('B')) estimatedTokens = tokenValue * 1e9;
+        if (model.tokens.includes('M')) estimatedTokens = tokenValue * 1e6;
+        
+        // Rough calculation: assume 70% input, 30% output
+        const estimatedValue = (estimatedTokens * 0.7 * inputCost / 1e6) + (estimatedTokens * 0.3 * outputCost / 1e6);
+        return acc + estimatedValue;
+      }, 0);
+      
+      if (total > 1e9) return `$${(total / 1e9).toFixed(1)}B`;
+      if (total > 1e6) return `$${(total / 1e6).toFixed(1)}M`;
+      if (total > 1e3) return `$${(total / 1e3).toFixed(1)}K`;
+      return `$${total.toFixed(0)}`;
+  }, [orgModels]);
+
   const chartData = useMemo(() => generateChartData(timeFrame), [timeFrame]);
   const chartTicks = useMemo(() => getTicks(chartData), [chartData]);
 
@@ -167,14 +215,7 @@ export default function OrganizationPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
-                <Image
-                    src={`https://placehold.co/40x40.png`}
-                    alt={`${organizationName} logo`}
-                    width={40}
-                    height={40}
-                    className="rounded-lg"
-                    data-ai-hint={`${organizationName} logo`}
-                />
+                <img src="/devicon_google.svg" alt={`${organizationName} logo`} className="rounded-lg" />
                 <h1 className="text-4xl font-bold">{organizationName.charAt(0).toUpperCase() + organizationName.slice(1)}</h1>
                  <div className="flex items-center gap-2">
                   {orgSocialData?.website && (
@@ -189,7 +230,7 @@ export default function OrganizationPage() {
                   )}
                    {orgSocialData?.twitter && (
                      <Link href={orgSocialData.twitter} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="icon"><Twitter className="h-5 w-5 text-muted-foreground" /></Button>
+                      <Button variant="ghost" size="icon"><img src="/icon_logo-x.svg" alt="Twitter" className="h-4 w-4 text-muted-foreground" /></Button>
                     </Link>
                   )}
                 </div>
@@ -199,14 +240,14 @@ export default function OrganizationPage() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Total Tokens Generated</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Tokens Generated</h3>
               <Select value={timeFrame} onValueChange={(value) => setTimeFrame(value as TimeFrame)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select time frame" />
+                <SelectTrigger className="w-[140px] bg-white border border-gray-300 rounded-[12px]">
+                  <SelectValue placeholder="Past Month" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="monthly">Past Month</SelectItem>
                   <SelectItem value="3months">Past 3 Months</SelectItem>
                   <SelectItem value="6months">Past 6 Months</SelectItem>
                   <SelectItem value="yearly">Yearly</SelectItem>
@@ -218,18 +259,19 @@ export default function OrganizationPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={chartData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                 >
                   <defs>
                     <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis 
                     dataKey="date" 
                     ticks={chartTicks}
+                    tick={{ fontSize: 12, fill: '#6B7280' }}
                     tickFormatter={(str) => {
                       if (!str) return '';
                       const date = new Date(str);
@@ -242,31 +284,65 @@ export default function OrganizationPage() {
                       return format(date, 'MMM d');
                     }}
                   />
-                  <YAxis />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: '#6B7280' }}
+                    tickFormatter={(value) => {
+                      if (value >= 1000) {
+                        return `${(value / 1000).toFixed(1)}T`;
+                      } else if (value >= 1) {
+                        return `${value}B`;
+                      }
+                      return value.toString();
+                    }}
+                    domain={[0, 2600]}
+                    ticks={[0, 650, 1300, 1950, 2600]}
+                  />
                   <Tooltip 
                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        borderColor: 'hsl(var(--border))',
+                        backgroundColor: 'white',
+                        borderColor: '#E5E7EB',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      }}
+                      formatter={(value: number) => {
+                        if (value >= 1000) {
+                          return [`${(value / 1000).toFixed(1)}T`, 'Tokens'];
+                        } else if (value >= 1) {
+                          return [`${value}B`, 'Tokens'];
+                        }
+                        return [value.toString(), 'Tokens'];
                       }}
                   />
-                  <Legend />
-                  <Area type="monotone" dataKey="tokens" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#chartGradient)" activeDot={{ r: 8 }} dot={false} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="tokens" 
+                    stroke="#3B82F6" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#chartGradient)" 
+                    activeDot={{ r: 6, fill: '#3B82F6' }} 
+                    dot={false} 
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <StatCard icon={BarChart} title="Total Tokens" value={totalTokens} />
-            <StatCard icon={HardHat} title="Top Provider" value={orgRankingData?.provider || 'N/A'} />
-            <StatCard icon={Bot} title="Top Model" value={topRankedModel} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard title="Total Tokens" value={totalTokens} />
+            <StatCard title="Total Value" value={totalValue} />
+            <StatCard title="Top Provider" value={orgRankingData?.provider || organizationName} />
+            <StatCard title="Top Model" value={topRankedModel} />
         </div>
 
         <main>
-            <h2 className="text-2xl font-bold mb-6">Models by {organizationName.charAt(0).toUpperCase() + organizationName.slice(1)} ({orgModels.length})</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-black">Models By {organizationName.charAt(0).toUpperCase() + organizationName.slice(1)}</h2>
+                <span className="text-sm text-gray-500">{orgModels.length} Models</span>
+            </div>
             {orgModels.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-4">
                     {orgModels.map(model => (
                         <ModelCard key={model.name} model={model} />
                     ))}

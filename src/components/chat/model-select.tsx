@@ -58,7 +58,7 @@ export function ModelSelect({ selectedModel, onSelectModel }: ModelSelectProps) 
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-[200px] justify-between  bg-muted/30 hover:bg-muted/50"
         >
           {selectedModel
             ? selectedModel.label

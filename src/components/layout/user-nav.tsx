@@ -30,7 +30,6 @@ interface UserNavProps {
 export function UserNav({ user }: UserNavProps) {
   const { toast } = useToast();
   const router = useRouter();
-
   const handleSignOut = async () => {
     try {
       await firebaseSignOut(auth);
