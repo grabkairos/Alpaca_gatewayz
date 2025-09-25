@@ -22,7 +22,7 @@ type Organization = {
 }
 
 const OrganizationCard = ({ org }: { org: Organization }) => (
-    <Card className="flex flex-col bg-card border rounded-lg">
+    <Card className="flex flex-col bg-card border border-gray-400 rounded-lg">
         <CardContent className="p-6 pb-2 flex-grow">
             <div className="flex items-start gap-4 mb-4">
                 <div className="w-12 h-12  rounded-full flex items-center justify-center">
@@ -48,7 +48,7 @@ const OrganizationCard = ({ org }: { org: Organization }) => (
         </CardContent>
         <CardFooter className="p-6 pt-4">
              <Link href={`/organizations/${encodeURIComponent(org.name)}`} className="w-full">
-                <Button variant="outline" className="w-full bg-white">
+                <Button variant="outline" className="w-full bg-white border border-gray-400">
                     View Profile <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </Link>
@@ -95,7 +95,7 @@ export default function DevelopersPage() {
             <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-8">
                 <header className="text-center mb-8">
                     <h1 className="text-4xl font-bold tracking-tight">Developers</h1>
-                    <p className="mt-2 text-lg text-muted-foreground">
+                    <p className="mt-2 text-lg ">
                         Discover The Organisations Building The Future Of AI
                     </p>
                 </header>
@@ -119,7 +119,7 @@ export default function DevelopersPage() {
                             onClick={() => setActiveTab('top')}
                             className={activeTab === 'top' ? 'bg-gray-100 text-foreground' : ''}
                         >
-                            Top Models
+                            Top Developers
                         </Button>
                         <Button 
                             variant={activeTab === 'trending' ? 'default' : 'ghost'}
@@ -146,11 +146,17 @@ export default function DevelopersPage() {
 
                 <main>
                     {filteredOrgs.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {filteredOrgs.map(org => (
                                 <OrganizationCard key={org.id} org={org} />
                             ))}
+                        
                         </div>
+                        <div className='flex justify-center items-center mt-6'>
+                        <Button variant="outline">Load More</Button>
+                        </div>
+                    </div>
                     ) : (
                         <p className="text-center text-muted-foreground mt-12">No developers found.</p>
                     )}

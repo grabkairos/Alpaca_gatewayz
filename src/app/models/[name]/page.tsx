@@ -269,7 +269,7 @@ export default function ModelProfilePage() {
                     </Section>
 
                     {/* Top Apps Section */}
-                    <Section title={``}>
+                    <Section title={``} className="pb-0">
                         <div className="grid grid-cols-24 gap-4 items-center mb-8">
                             <div className="col-span-12">
                                 <h2 className="text-2xl font-bold">Top Apps Using {model.name}</h2>
@@ -289,32 +289,32 @@ export default function ModelProfilePage() {
                         {/* Apps Grid */}
                         <div className="grid grid-cols-24 gap-6">
                             {topAppsData.map((app) => (
-                                <Card key={app.id} className="p-6 col-span-6">
+                                <Card key={app.id} className="p-6 col-span-6 border border-gray-400">
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-3">
                                             <div className="w-12 h-12 rounded-full flex items-center justify-center">
                                                 <img src="/devicon_google.svg" alt="Google" className="w-12 h-12 rounded-full" />
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold text-lg">Google</h3>
-                                                <p className="text-sm text-gray-500">Google • AI Assistant</p>
+                                                <h3 className="font-bold text-lg">Google</h3>
+                                                <p className="text-sm ">Google • AI Assistant</p>
                                             </div>
                                         </div>
                                         
                                         <div className="flex justify-between items-end">
                                             <div>
                                                 <p className="text-2xl font-bold">{app.tokensGenerated}</p>
-                                                <p className="text-sm text-gray-500">Tokens Generated</p>
+                                                <p className="text-sm ">Tokens Generated</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-bold text-green-500">
+                                                <p className="text-2xl font-bold ">
                                                     {app.weeklyGrowth}
                                                 </p>
-                                                <p className="text-sm text-gray-500">Weekly Growth</p>
+                                                <p className="text-sm ">Weekly Growth</p>
                                             </div>
                                         </div>
                                         
-                                        <Button variant="outline" className="w-full">
+                                        <Button variant="outline" className="w-full bg-white border border-gray-400 font-bold">
                                             View App →
                                         </Button>
                                     </div>

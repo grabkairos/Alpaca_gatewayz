@@ -695,8 +695,8 @@ export default function ChatPage() {
           )}
 
           {/* Message input area - fixed at bottom */}
-          <div className="w-full p-6">
-            <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full py-6">
+            <div className="w-full pl-20 mx-auto">
               <div className="relative">
                 <div className="flex items-center gap-1 px-2 py-2 bg-white rounded-xl border">
                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">

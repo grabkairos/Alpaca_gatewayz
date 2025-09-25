@@ -339,7 +339,7 @@ export default function RankingsPage() {
            {/* Apps Grid */}
            <div className="grid grid-cols-24 gap-6">
              {topModels.slice(0, 20).map((model, i) => (
-               <Card key={i} className="p-6 col-span-6">
+               <Card key={i} className="p-6 col-span-6 border border-gray-400">
                  <div className="space-y-4">
                    <div className="flex items-center space-x-3">
                      <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -347,29 +347,32 @@ export default function RankingsPage() {
                      </div>
                      <div>
                        <h3 className="font-semibold text-lg">{model.model}</h3>
-                       <p className="text-sm text-gray-500">{model.org} • {model.category}</p>
+                       <p className="text-sm">{model.org} • {model.category}</p>
                      </div>
                    </div>
                    
                    <div className="flex justify-between items-end">
                      <div>
                        <p className="text-2xl font-bold">{model.tokens}</p>
-                       <p className="text-sm text-gray-500">Tokens Generated</p>
+                       <p className="text-sm ">Tokens Generated</p>
                      </div>
                      <div className="text-right">
                        <p className={`text-2xl font-bold ${model.changePercent.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
                          {model.changePercent}
                        </p>
-                       <p className="text-sm text-gray-500">Weekly Growth</p>
+                       <p className="text-sm ">Weekly Growth</p>
                      </div>
                    </div>
                    
-                   <Button variant="outline" className="w-full">
+                   <Button variant="outline" className="w-full border border-gray-400">
                      View App →
                    </Button>
                  </div>
                </Card>
              ))}
+           </div>
+           <div className='flex justify-center items-center mt-6'>
+              <Button variant="outline">Load More</Button>
            </div>
          </div>
           </>
