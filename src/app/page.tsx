@@ -381,7 +381,7 @@ print(completion.choices[0])`,
             <h2 className="text-4xl font-bold text-center">Getting Started Is As Easy As 123...</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-12">
-            <div className="p-4 bg-muted rounded-lg h-40 grid grid-cols-7">
+            <div className="p-4 bg-card rounded-lg h-40 grid grid-cols-7">
               <div className="flex items-center justify-between col-span-2" >
                 <img src="/sign-up-blue.svg" alt="Stats" width="100%" height="100%" />
               </div>
@@ -391,7 +391,7 @@ print(completion.choices[0])`,
                 </HowItWorksStep>
               </div>
             </div>    
-            <div className="p-4 bg-muted rounded-lg h-40 grid grid-cols-7">
+            <div className="p-4 bg-card rounded-lg h-40 grid grid-cols-7">
              <div className="flex items-center justify-between col-span-2" >
                 <img src="/coins-blue.svg" alt="Stats" width="100%" height="100%" />
               </div>
@@ -401,7 +401,7 @@ print(completion.choices[0])`,
                 </HowItWorksStep>
               </div>
             </div>
-            <div className="p-4 bg-muted rounded-lg h-40 grid grid-cols-7">
+            <div className="p-4 bg-card rounded-lg h-40 grid grid-cols-7">
               <div className="flex items-center justify-between col-span-2" >
                 <img src="/api-blue.svg" alt="Stats" width="100%" height="100%" />
               </div>

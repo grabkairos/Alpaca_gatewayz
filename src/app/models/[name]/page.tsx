@@ -8,115 +8,80 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
-import { addDays, format } from 'date-fns';
-import TopAppsTable from '@/components/dashboard/top-apps-table';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { format } from 'date-fns';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { ProvidersDisplay } from '@/components/models/provider-card';
-import { Maximize } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { providerData } from '@/lib/provider-data';
-import { generateChartData, generateStatsTable } from '@/lib/data';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { stringToColor } from '@/lib/utils';
+import { ChevronDown, Github } from 'lucide-react';
+import { LinkIcon } from 'lucide-react';
 
 const Section = ({ title, description, children, className }: { title: string, description?: string, children: React.ReactNode, className?: string }) => (
     <section className={cn("py-8", className)}>
-        <h2 className="text-2xl font-semibold">{title}</h2>
-        {description && <p className="text-muted-foreground mt-2">{description}</p>}
+        <div className="flex items-center gap-2">
+            <h2 className="text-2xl flex-1 font-bold">{title}</h2>
+            {description && <p className="text-muted-foreground mt-2">{description}</p>}
+        </div>
         <div className="mt-6">{children}</div>
     </section>
 );
 
-const ChartCard = ({ modelName, title, dataKey, yAxisFormatter }: { modelName: string, title: string; dataKey: "throughput" | "latency"; yAxisFormatter: (value: any) => string; }) => {
-    const providers = useMemo(() => providerData[modelName] || [], [modelName]);
-    const chartData = useMemo(() => generateChartData(providers, dataKey), [providers, dataKey]);
-    const statsTable = useMemo(() => generateStatsTable(providers, dataKey), [providers, dataKey]);
+// Generate mock activity data for the chart
+const generateActivityData = () => {
+    const data = [];
+    const startDate = new Date('2024-06-08');
+    const endDate = new Date('2024-07-16');
     
-    return (
-        <Dialog>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-base font-medium">{title}</CardTitle>
-                    <DialogTrigger asChild>
-                         <Button variant="ghost" size="icon" className="w-6 h-6">
-                            <Maximize className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                    </DialogTrigger>
-                </CardHeader>
-                <CardContent>
-                     <div className="h-[200px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
-                                <Tooltip
-                                    formatter={(value, name) => [`${value}${dataKey === 'latency' ? 's' : ' tps'}`, name]}
-                                    labelFormatter={(label) => format(new Date(label), "PPP")}
-                                     contentStyle={{
-                                        backgroundColor: 'hsl(var(--background))',
-                                        borderColor: 'hsl(var(--border))',
-                                      }}
-                                />
-                                {providers.map((p, i) => (
-                                     <Line key={p.name} type="monotone" dataKey={p.name} stroke={`hsl(var(--chart-${(i % 5) + 1}))`} dot={false} strokeWidth={2} />
-                                ))}
-                                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={false} />
-                                <YAxis tickLine={false} axisLine={false} tickFormatter={yAxisFormatter} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </CardContent>
-            </Card>
-             <DialogContent className="max-w-4xl h-auto flex flex-col bg-card text-card-foreground">
-                <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
-                     <p className="text-sm text-muted-foreground">Median {title} of the top providers for this model.</p>
-                </DialogHeader>
-                <div className="flex-grow my-4">
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                             <XAxis dataKey="date" tickFormatter={(label) => format(new Date(label), 'MMM d')} />
-                             <YAxis tickFormatter={yAxisFormatter} />
-                            <Tooltip
-                                formatter={(value, name) => [`${value}${dataKey === 'latency' ? 's' : ' tps'}`, name]}
-                                labelFormatter={(label) => format(new Date(label), "PPP")}
-                                 contentStyle={{
-                                    backgroundColor: 'hsl(var(--background))',
-                                    borderColor: 'hsl(var(--border))',
-                                  }}
-                             />
-                            <Legend />
-                            {providers.map((p, i) => (
-                                <Line key={p.name} type="monotone" dataKey={p.name} stroke={`hsl(var(--chart-${(i % 5) + 1}))`} />
-                            ))}
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Provider</TableHead>
-                            <TableHead className="text-right">Min {title}</TableHead>
-                            <TableHead className="text-right">Max {title}</TableHead>
-                            <TableHead className="text-right">Avg {title}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {statsTable.map(stat => (
-                            <TableRow key={stat.provider}>
-                                <TableCell className="font-medium">{stat.provider}</TableCell>
-                                <TableCell className="text-right">{stat.min.toFixed(2)}{dataKey === 'latency' ? 's' : ' tps'}</TableCell>
-                                <TableCell className="text-right">{stat.max.toFixed(2)}{dataKey === 'latency' ? 's' : ' tps'}</TableCell>
-                                <TableCell className="text-right">{stat.avg.toFixed(2)}{dataKey === 'latency' ? 's' : ' tps'}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </DialogContent>
-        </Dialog>
-    )
-}
+    // Generate data points for specific dates shown in the design
+    const keyDates = [
+        '2024-07-08', '2024-08-26', '2024-10-14', '2024-12-02', 
+        '2025-01-20', '2025-03-10', '2025-04-28', '2025-06-16'
+    ];
+    
+    // Generate data for all days between start and end
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        
+        // Create realistic usage patterns with peaks and valleys
+        let basePromptTokens = 800000000000; // Base around 800B
+        let baseCompletionTokens = 200000000000; // Base around 200B
+        
+        // Add variation based on day of week and some randomness
+        const dayOfWeek = d.getDay();
+        const randomFactor = Math.random() * 0.6 + 0.7; // 0.7 to 1.3
+        
+        // Weekend effect
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            basePromptTokens *= 0.8;
+            baseCompletionTokens *= 0.8;
+        }
+        
+        // Add some peaks for specific periods
+        if (keyDates.includes(dateStr)) {
+            basePromptTokens *= 1.4; // Peak periods
+            baseCompletionTokens *= 1.4;
+        }
+        
+        data.push({
+            date: dateStr,
+            promptTokens: Math.floor(basePromptTokens * randomFactor),
+            completionTokens: Math.floor(baseCompletionTokens * randomFactor),
+        });
+    }
+    
+    return data;
+};
+
+// Generate mock top apps data
+const generateTopAppsData = () => {
+    return Array.from({ length: 8 }, (_, i) => ({
+        id: i + 1,
+        name: "Autonomous Coding Agent That Is...",
+        tokensGenerated: "21.7B",
+        weeklyGrowth: "+13.06%",
+        logo: "G" // Google logo placeholder
+    }));
+};
 
 export default function ModelProfilePage() {
     const params = useParams();
@@ -128,12 +93,9 @@ export default function ModelProfilePage() {
     const model = useMemo(() => {
         return models.find(m => m.name === modelName);
     }, [modelName]);
-    
-    const relatedModels = useMemo(() => {
-      if(!model) return [];
-      return models.filter(m => m.developer === model.developer && m.name !== model.name).slice(0,3);
-    }, [model])
 
+    const activityData = useMemo(() => generateActivityData(), []);
+    const topAppsData = useMemo(() => generateTopAppsData(), []);
 
     if (!model) {
         return (
@@ -142,101 +104,230 @@ export default function ModelProfilePage() {
             </div>
         );
     }
-
+    console.log(model,"model123123123123");
     return (
-      <TooltipProvider>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-screen-2xl">
-            <header className="mb-8">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold">{model.name}</h1>
-                        <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" style={{ backgroundColor: stringToColor(model.category) }}>{model.category}</Badge>
-                            <Badge variant="outline" style={{ backgroundColor: stringToColor(model.series) }}>{model.series}</Badge>
+        <TooltipProvider>
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-screen-2xl">
+                {/* Header Section */}
+                <header className="mb-8 mt-7">
+                    <div className="flex flex-wrap items-centergap-4">
+                        <div className="flex-1  justify-between ">
+                            <h1 className="text-3xl font-bold">{model.name}</h1>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className="text-sm ">Created Apr 14, 2025 | By <a href={`/developers/${model.developer}`} className="text-blue-500 hover:underline">{model.developer}</a></span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant="outline" className="bg-black text-white px-2 py-1 text-sm">Free</Badge>
+                                </div>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant="outline" className="bg-blue-100 text-blue-800 px-2 py-1 text-sm">Multi-Lingual</Badge>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div className="flex items-top gap-2">
+                            <Button>Chat</Button>
+                            <Button>Create API Key</Button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button>Chat</Button>
-                        <Button variant="outline">Compare</Button>
+                    <div className="mt-4 ">
+                        <p>{model.description}</p>
                     </div>
-                </div>
-                 <div className="mt-4 text-muted-foreground">
-                    <p>{model.description}</p>
-                    <Link href="#" className="text-primary hover:underline mt-2 inline-block">Paper &rarr;</Link>
-                </div>
-            </header>
+                </header>
 
-            <nav className="border-b">
-                <div className="flex gap-6">
-                    {['Overview', 'Providers', 'Apps', 'Activity', 'Uptime', 'API'].map(item => (
-                        <Button key={item} variant="ghost" className="rounded-none border-b-2 border-transparent hover:border-primary data-[active]:border-primary data-[active]:text-primary">
-                            {item}
-                        </Button>
-                    ))}
-                </div>
-            </nav>
-
-            <main>
-                <Section 
-                  title={`Providers for ${model.name}`}
-                  description="OpenRouter routes requests to the best providers that are able to handle your prompt size and parameters, with fallbacks to maximize uptime."
-                  className="pt-8 pb-0"
-                >
-                    <ProvidersDisplay modelName={model.name} />
-                </Section>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-                    <ChartCard 
-                        modelName={model.name}
-                        title="Throughput"
-                        dataKey="throughput"
-                        yAxisFormatter={(value) => `${value} tps`}
-                    />
-                     <ChartCard 
-                        modelName={model.name}
-                        title="Latency"
-                        dataKey="latency"
-                        yAxisFormatter={(value) => `${value}s`}
-                    />
-                </div>
-                
-                <TopAppsTable />
-
-                <Section title={`Uptime from our API and our providers`}>
-                    <Card>
-                        <CardContent className="h-[200px] p-2">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={generateChartData([], 'throughput').slice(0,30)}>
-                                    <Tooltip 
-                                        formatter={(value) => [value, "Uptime"]}
-                                    />
-                                    <Area type="monotone" dataKey="value" strokeWidth={2} stroke="hsl(var(--chart-2))" fill="hsl(var(--chart-2) / 0.1)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                </Section>
-
-                <Section title="Is My Data Private?">
-                    <p className="text-muted-foreground">Yes, your data is private by default. See our <Link href="#" className="text-primary hover:underline">privacy policy</Link>.</p>
-                </Section>
-
-                <Section title={`More models from ${model.developer}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {relatedModels.map(relatedModel => (
-                            <Link key={relatedModel.name} href={`/models/${encodeURIComponent(relatedModel.name)}`}>
-                                <Card className="hover:border-primary h-full">
-                                    <CardContent className="p-4">
-                                        <h3 className="font-semibold">{relatedModel.name}</h3>
-                                        <p className="text-sm text-muted-foreground mt-2 truncate">{relatedModel.description}</p>
-                                    </CardContent>
+                <main>
+                    {/* Providers Section */}
+                    <Section 
+                        title={`Providers for ${model.name}`}
+                        description="2 Providers"
+                        className="pt-8 pb-0"
+                    >
+                        <div className="space-y-4">
+                            {[1, 2].map((_, index) => (
+                                <Card key={index} className="px-4 py-2">
+                                    <div className="grid grid-cols-24 gap-6 items-center">
+                                        {/* Left Section - Provider Info */}
+                                        <div className="col-span-6">
+                                            <div className="flex flex-col items-start gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <img src="/devicon_google.svg" alt="OpenAI" className="w-4 h-4" />
+                                                    <h3 className="font-semibold text-lg">OpenAI</h3>
+                                                </div>
+                                                <div className="flex gap-1 mt-1">
+                                                    <Link href="/" target="_blank" rel="noopener noreferrer">
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                                                            <LinkIcon className="h-6 w-6 text-muted-foreground" />
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href="/" target="_blank" rel="noopener noreferrer">
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                                                            <Github className="h-6 w-6 text-muted-foreground" />
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href="/" target="_blank" rel="noopener noreferrer">
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                                                            <img src="/icon_logo-x.svg" alt="Twitter" className="h-4 w-4 text-muted-foreground" />
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Middle Section - Metrics` */}
+                                        <div className="col-span-2 text-right">
+                                            <div className="text-lg ">Tokens</div>
+                                            <div className="text-lg ">170,02m</div>
+                                        </div>
+                                        <div className="col-span-2 text-right">
+                                            <div className="text-lg ">Value</div>
+                                            <div className="text-lg ">$10.35m</div>
+                                        </div>
+                                        <div className="col-span-3 text-right">
+                                            <div className="text-lg ">Max Output</div>
+                                            <div className="text-lg ">4096k</div>
+                                        </div>
+                                        <div className="col-span-2 text-right">
+                                            <div className="text-lg ">Input</div>
+                                            <div className="text-lg ">$0.15</div>
+                                        </div>
+                                        <div className="col-span-2 text-right">
+                                            <div className="text-lg ">Output</div>
+                                            <div className="text-lg ">$0.60</div>
+                                        </div>
+                                        <div className="col-span-2 text-right">
+                                            <div className="text-lg ">Latency</div>
+                                            <div className="text-lg ">0.49s</div>
+                                        </div>
+                                        <div className="col-span-3 text-right">
+                                            <div className="text-lg ">Throughput</div>
+                                            <div className="text-lg ">24.99 Tps</div>
+                                        </div>
+                                        
+                                        {/* Right Section - Status Indicator */}
+                                        <div className="col-span-2 flex items-center justify-end">
+                                           <img src="/ant-design_signal-filled.svg" alt="Online" className="w-9 h-9" />
+                                        </div>
+                                    </div>
                                 </Card>
-                            </Link>
-                        ))}
-                    </div>
-                </Section>
-            </main>
-        </div>
+                            ))}
+                        </div>
+                    </Section>
+
+                    {/* Recent Activity Section */}
+                    <Section title={`Recent Activity Of ${model.name}`} className="pt-16">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Total usage per day on Gatewayz</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[400px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={activityData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                            <XAxis 
+                                                dataKey="date" 
+                                                tickFormatter={(value) => format(new Date(value), 'MMM d')}
+                                                tick={{ fontSize: 12, fill: '#6b7280' }}
+                                                axisLine={{ stroke: '#e5e7eb' }}
+                                                tickLine={{ stroke: '#e5e7eb' }}
+                                            />
+                                            <YAxis 
+                                                tickFormatter={(value) => {
+                                                    if (value >= 1000000000000) return `${(value / 1000000000000).toFixed(1)}T`;
+                                                    if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}B`;
+                                                    return value.toString();
+                                                }}
+                                                tick={{ fontSize: 12, fill: '#6b7280' }}
+                                                axisLine={{ stroke: '#e5e7eb' }}
+                                                tickLine={{ stroke: '#e5e7eb' }}
+                                            />
+                                            <Tooltip 
+                                                formatter={(value: any, name: any) => [
+                                                    name === 'promptTokens' ? `${(Number(value) / 1000000000000).toFixed(1)}T` : `${(Number(value) / 1000000000000).toFixed(1)}T`,
+                                                    name === 'promptTokens' ? 'Prompt Tokens' : 'Completion Tokens'
+                                                ]}
+                                                labelFormatter={(label) => format(new Date(label), "PPP")}
+                                                contentStyle={{
+                                                    backgroundColor: 'white',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '6px',
+                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                                }}
+                                            />
+                                            <Legend 
+                                                wrapperStyle={{ paddingTop: '20px' }}
+                                                iconType="rect"
+                                            />
+                                            <Bar dataKey="promptTokens" stackId="a" fill="#3b82f6" name="Prompt Tokens" />
+                                            <Bar dataKey="completionTokens" stackId="a" fill="#9ca3af" name="Completion Tokens" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </Section>
+
+                    {/* Top Apps Section */}
+                    <Section title={``}>
+                        <div className="grid grid-cols-24 gap-4 items-center mb-8">
+                            <div className="col-span-12">
+                                <h2 className="text-2xl font-bold">Top Apps Using {model.name}</h2>
+                            </div>
+                            <div className="col-span-12">
+                                <div className="flex gap-4 justify-end">
+                                    <Button variant="outline" className="w-[140px] justify-between">
+                                        Top This Year <ChevronDown className="w-4 h-4" />
+                                    </Button>
+                                    <Button variant="outline" className="w-[120px] justify-between">
+                                        Sort By: All <ChevronDown className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Apps Grid */}
+                        <div className="grid grid-cols-24 gap-6">
+                            {topAppsData.map((app) => (
+                                <Card key={app.id} className="p-6 col-span-6">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                                                <img src="/devicon_google.svg" alt="Google" className="w-12 h-12 rounded-full" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-lg">Google</h3>
+                                                <p className="text-sm text-gray-500">Google • AI Assistant</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-end">
+                                            <div>
+                                                <p className="text-2xl font-bold">{app.tokensGenerated}</p>
+                                                <p className="text-sm text-gray-500">Tokens Generated</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-2xl font-bold text-green-500">
+                                                    {app.weeklyGrowth}
+                                                </p>
+                                                <p className="text-sm text-gray-500">Weekly Growth</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <Button variant="outline" className="w-full">
+                                            View App →
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                           
+                        </div>
+                        <div className='flex justify-center items-center mt-6'>
+                                <Button variant="outline">Load More</Button>
+                        </div>
+                    </Section>
+                </main>
+            </div>
         </TooltipProvider>
     );
 }
